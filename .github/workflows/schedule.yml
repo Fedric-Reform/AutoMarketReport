@@ -38,7 +38,7 @@ jobs:
           # Your Chat ID secret (e.g., -1001234567890)
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Define the name/path of your PDF file here
-          REPORT_FILE_PATH: "report.pdf" 
+          # REPORT_FILE_PATH: "report.pdf" 
         
         # This assumes your script is named 'report.py' and is in the root directory.
         run: python Report.py
