@@ -4,7 +4,7 @@ import requests
 # Load environment variables set in the GitHub Workflow
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-REPORT_PATH = os.environ.get("Report.pdf")
+REPORT_PATH = os.environ.get("Market Data Research.pdf")
 
 if not all([BOT_TOKEN, CHAT_ID, REPORT_PATH]):
     print("Error: Missing environment variables (Token, Chat ID, or File Path).")
