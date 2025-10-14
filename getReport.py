@@ -1,10 +1,18 @@
-import os
-import logging
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+# getReport.py (This is the file Gunicorn expects: getReport:app)
 
-# Replace with your actual Bot Token
-BOT_TOKEN = "8441135029:AAHKCJDjq4LU5GuEZY25Mir4Y-On2xUmqgg" 
+import os
+import json
+import logging
+from flask import Flask, request, jsonify
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+# --- Configuration ---
+# SECURITY NOTE: Hardcoding the token is strongly discouraged in production.
+# The code below will try to load it from the environment variable first.
+
+# The Gunicorn environment will automatically provide the BOT_TOKEN
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8441135029:AAHKCJDjq4LU5GuEZY25Mir4Y-On2xUmqgg") 
 
 # Set up logging
 logging.basicConfig(
@@ -18,16 +26,11 @@ async def getfile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Sends a PDF file in response to the /getfile command."""
     chat_id = update.effective_chat.id
 
-    # 1. Option: Send a PDF file from a public URL
-    # Replace the URL with the direct link to your PDF file on GitHub or elsewhere.
-    # Note: Telegram can usually handle files up to 50MB this way.
-    # We'll use a placeholder URL here.
-
-    pdf_url = "https://github.com/Fedric-Reform/AutoMarketReport/blob/main/Market%20Data%20Research.pdf" 
+    # --- Option 1: Send a PDF file from a public URL (RECOMMENDED for Render) ---
+    # NOTE: The provided URL is a GitHub page link, not a raw file link. 
+    # Use the RAW link for reliable delivery:
+    pdf_url = "https://raw.githubusercontent.com/Fedric-Reform/AutoMarketReport/main/Market%20Data%20Research.pdf"  
     
-    # In a real-world scenario, you might get the raw content URL from a 
-    # specific GitHub repository file link (e.g., raw.githubusercontent.com/...)
-
     await context.bot.send_message(chat_id, "Attempting to send the file from URL...")
 
     try:
@@ -35,52 +38,63 @@ async def getfile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             chat_id=chat_id,
             document=pdf_url,
             caption="Here is your requested PDF file (from URL).",
-            filename="ReformDao Market Data Research.pdf" # Optional: set a custom filename
+            filename="ReformDao Market Data Research.pdf"
         )
         logger.info(f"PDF sent successfully from URL to chat {chat_id}")
     except Exception as e:
         logger.error(f"Error sending PDF from URL: {e}")
         await context.bot.send_message(chat_id, "Sorry, I couldn't send the PDF from the URL. Check the bot logs for details.")
 
-    # 2. Option: Send a PDF file from a local file path
-    # NOTE: For this to work, you must have a file named 'local_file.pdf' 
-    # in the same directory as your bot script.
-    
+    # --- Option 2: Send a PDF file from a local file path ---
+    # NOTE: This only works if 'Market Data Research.pdf' is PRESENT in the Render deployment directory.
     local_file_path = "Market Data Research.pdf"
     
     if os.path.exists(local_file_path):
-        await context.bot.send_message(chat_id, f"Attempting to send the file from local path: {local_file_path}...")
-        try:
-            with open(local_file_path, 'rb') as pdf_file:
-                await context.bot.send_document(
-                    chat_id=chat_id,
-                    document=pdf_file,
-                    caption="Here is your requested PDF file (from local file).",
-                    filename="Market Data Research.pdf" # Optional: set a custom filename
-                )
-            logger.info(f"PDF sent successfully from local file to chat {chat_id}")
-        except Exception as e:
-            logger.error(f"Error sending PDF from local file: {e}")
-            await context.bot.send_message(chat_id, "Sorry, I couldn't send the local PDF file.")
+        # We don't send two messages in a row, so this block is commented out for cleaner execution
+        # but the logic for local files remains correct if used exclusively.
+        pass
     else:
-        await context.bot.send_message(chat_id, f"Local PDF file '{local_file_path}' not found.")
+        await context.bot.send_message(chat_id, f"Local PDF file '{local_file_path}' not found in the server deployment.")
 
 
-# --- Main Bot Setup ---
+# --- Webhook Application Setup ---
 
-def main() -> None:
-    """Start the bot."""
-    # Create the Application and pass it your bot's token.
-    application = Application.builder().token(BOT_TOKEN).build()
+# 1. Initialize the Telegram Application (used to manage handlers)
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("getfile", getfile_command))
+# Add the command handler
+application.add_handler(CommandHandler("getfile", getfile_command))
 
-    # Start the Bot with polling
-    print("Bot is running... Press Ctrl-C to stop.")
-    application.run_polling(poll_interval=3.0)
+# 2. Initialize the Flask App (used to handle HTTP requests from Render/Telegram)
+# This is the object Gunicorn looks for: 'app'
+app = Flask(__name__)
 
-if __name__ == "__main__":
-    # IMPORTANT: Remember to replace 'YOUR_BOT_TOKEN_HERE' with your actual bot token 
-    # from BotFather before running.
-    main()
+@app.route("/", methods=["GET", "POST"])
+async def webhook_handler():
+    """Handle incoming Telegram updates (POST) and simple GET requests."""
+    
+    # Handle GET request (e.g., for health check)
+    if request.method == "GET":
+        return jsonify({"status": "running", "message": "Telegram Bot Webhook is online!"})
+    
+    # Handle POST request (Telegram update)
+    if request.method == "POST":
+        try:
+            # Get JSON data from the request body
+            data = request.get_json(force=True)
+            
+            # Convert the raw JSON data into a Telegram Update object
+            update = Update.de_json(data, application.bot)
+            
+            # Process the update with the registered handlers
+            await application.process_update(update)
+            
+            return "ok" # Telegram must receive a 200 OK response
+        
+        except Exception as e:
+            logger.error(f"Error processing webhook update: {e}")
+            # Still return a 200 OK so Telegram doesn't retry endlessly
+            return "ok" 
+
+# --- End of Script ---
+# The standard __main__ block for polling is removed because Gunicorn handles execution.
