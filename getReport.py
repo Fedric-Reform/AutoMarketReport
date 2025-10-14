@@ -12,7 +12,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 # The code below will try to load it from the environment variable first.
 
 # The Gunicorn environment will automatically provide the BOT_TOKEN
-BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8441135029:AAHKCJDjq4LU5GuEZY25Mir4Y-On2xUmqgg") 
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN") 
 
 # Set up logging
 logging.basicConfig(
