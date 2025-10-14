@@ -1,5 +1,5 @@
 requests
 python-telegram-bot
 gunicorn
-flask
+Flask[async]
 gevent
