@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 # --- CONFIGURATION ---
-BOT_TOKEN = os.get"YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
 # Example GitHub raw file link
