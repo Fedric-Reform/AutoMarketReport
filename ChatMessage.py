@@ -30,26 +30,8 @@ def send_pdf():
     # Prepare the data part of the request
     data = {
         'chat_id': CHAT_ID,
-        'caption': f"📊 Weekly Report: {os.path.basename(REPORT_PATH)}",
+        'caption': f"Hey, this is a very important update for you guys. I love cheese.",
     }
-
-    try:
-        response = requests.post(TELEGRAM_URL, data=data, files=files)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
-        
-        # Check Telegram's response status
-        if response.json().get("ok"):
-            print("Successfully sent PDF report to Telegram.")
-        else:
-            print(f"Telegram API Error: {response.json().get('description', 'Unknown error')}")
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred during the request: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    finally:
-        # Important: Close the file handle after sending
-        files['document'][1].close()
 
 if __name__ == "__main__":
     send_pdf()
