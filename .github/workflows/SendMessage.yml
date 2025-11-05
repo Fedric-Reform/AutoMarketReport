@@ -41,5 +41,4 @@ jobs:
           # REPORT_FILE_PATH: "report.pdf" 
         
         # This assumes your script is named 'report.py' and is in the root directory.
-        run: python Report.py
-          python getReport.py
+        run: python ChatMessage.py
