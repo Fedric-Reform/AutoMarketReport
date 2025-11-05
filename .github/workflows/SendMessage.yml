@@ -1,0 +1,45 @@
+name: Weekly PDF Report to Telegram
+
+on:
+  # Allows manual execution from the 'Actions' tab on GitHub
+  workflow_dispatch:
+  # Schedule to run every Monday at 9:00 AM UTC (adjust as needed)
+  schedule:
+    - cron: '0 9 * * 1'
+
+jobs:
+  send-pdf-report:
+    # Use a standard Linux runner
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Checkout the repository content
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Set up Python environment
+      # Python will be used to run the script that sends the file
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # 3. Install the 'requests' library
+      # This library is essential for making HTTP calls to the Telegram Bot API
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. Run the Python script to send the PDF
+      - name: Send PDF Report via Telegram
+        # These secrets must be configured in your GitHub repository settings
+        env:
+          # Your Bot Token secret (e.g., 123456789:ABC-DEF...)
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # Your Chat ID secret (e.g., -1001234567890)
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Define the name/path of your PDF file here
+          # REPORT_FILE_PATH: "report.pdf" 
+        
+        # This assumes your script is named 'report.py' and is in the root directory.
+        run: python Report.py
+          python getReport.py
