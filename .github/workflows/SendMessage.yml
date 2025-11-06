@@ -30,7 +30,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Optional: Pass a custom message for this specific run
-          TELEGRAM_MESSAGE: "🔔 Daily Report from your automated system."
+          TELEGRAM_MESSAGE: "🔔 ATTENTION: This is a very important update."
         
         # Run the Python script
         run: python ChatMessage.py
