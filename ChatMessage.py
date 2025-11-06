@@ -1,37 +1,49 @@
 import os
 import requests
+import sys
 
-# Load environment variables set in the GitHub Workflow
+# Load environment variables (set via GitHub Secrets in the workflow)
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-REPORT_PATH = "Market Data Research.pdf"
 
-if not all([BOT_TOKEN, CHAT_ID, REPORT_PATH]):
-    print("Error: Missing environment variables (Token, Chat ID, or File Path).")
-    exit(1)
+# The message content (you can make this dynamic in the workflow)
+MESSAGE_TEXT = os.environ.get("TELEGRAM_MESSAGE", "🤖 Automated message sent successfully via GitHub Actions!")
 
-# Construct the API URL for the sendDocument method
-TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument"
-
-def send_pdf():
-    """Sends the PDF file to the specified Telegram chat."""
+def send_telegram_message():
+    """Constructs the API URL and sends a text message via Telegram's sendMessage method."""
     
-    if not os.path.exists(REPORT_PATH):
-        print(f"Error: File not found at path: {REPORT_PATH}")
-        return
+    # 1. Validate environment variables
+    if not all([BOT_TOKEN, CHAT_ID]):
+        print("❌ Error: Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID environment variables.")
+        sys.exit(1)
 
-    print(f"Preparing to send file: {REPORT_PATH}")
-
-    # Prepare the payload for the multipart/form-data request
-    files = {
-        'document': (REPORT_PATH, open(REPORT_PATH, 'rb')),
-    }
+    # 2. Construct API URL
+    TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     
-    # Prepare the data part of the request
+    # 3. Prepare data payload
     data = {
         'chat_id': CHAT_ID,
-        'caption': f"Hey, this is a very important update for you guys. I love cheese.",
+        'text': MESSAGE_TEXT,
+        'parse_mode': 'Markdown' # Optional: Allows you to format text with *bold* or _italics_
     }
 
+    print(f"Preparing to send message to chat ID: {CHAT_ID}")
+    
+    # 4. Send the request
+    try:
+        response = requests.post(TELEGRAM_URL, data=data)
+        response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
+
+        result = response.json()
+        if result.get('ok'):
+            print(f"✅ Message successfully sent to Telegram: '{MESSAGE_TEXT}'")
+        else:
+            print(f"❌ Telegram API Error: {result.get('description', 'Unknown error')}")
+            sys.exit(1)
+            
+    except requests.exceptions.RequestException as e:
+        print(f"❌ HTTP/Network Error during sending: {e}")
+        sys.exit(1)
+
 if __name__ == "__main__":
-    send_pdf()
+    send_telegram_message()
