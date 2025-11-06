@@ -1,44 +1,36 @@
-name: Weekly PDF Report to Telegram
+name: 💬 Telegram Notification
 
 on:
-  # Allows manual execution from the 'Actions' tab on GitHub
+  # Allows you to trigger the workflow manually from the GitHub UI
   workflow_dispatch:
-  # Schedule to run every Monday at 9:00 AM UTC (adjust as needed)
+  # Optional: Runs every day at 10:00 AM UTC
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '0 10 * * *' 
 
 jobs:
-  send-pdf-report:
-    # Use a standard Linux runner
+  send_notification:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Checkout the repository content
-      - name: Checkout repository
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v4
       
-      # 2. Set up Python environment
-      # Python will be used to run the script that sends the file
-      - name: Set up Python
+      - name: 🛠️ Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      # 3. Install the 'requests' library
-      # This library is essential for making HTTP calls to the Telegram Bot API
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: 📦 Install dependencies
+        # Only the 'requests' library is needed for this script
+        run: pip install requests
 
-      # 4. Run the Python script to send the PDF
-      - name: Send PDF Report via Telegram
-        # These secrets must be configured in your GitHub repository settings
+      - name: 🚀 Send Telegram Message
+        # The 'env' block is CRUCIAL for passing your secrets to the Python script
         env:
-          # Your Bot Token secret (e.g., 123456789:ABC-DEF...)
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          # Your Chat ID secret (e.g., -1001234567890)
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          # Define the name/path of your PDF file here
-          # REPORT_FILE_PATH: "report.pdf" 
+          # Optional: Pass a custom message for this specific run
+          TELEGRAM_MESSAGE: "🔔 Daily Report from your automated system."
         
-        # This assumes your script is named 'report.py' and is in the root directory.
+        # Run the Python script
         run: python ChatMessage.py
