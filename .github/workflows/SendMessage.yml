@@ -1,4 +1,4 @@
-name: 💬 Telegram Notification
+name: 💬 Telegram Message
 
 on:
   # Allows you to trigger the workflow manually from the GitHub UI
