@@ -3,9 +3,8 @@ name: Weekly PDF Report to Telegram
 on:
   # Allows manual execution from the 'Actions' tab on GitHub
   workflow_dispatch:
-  # Schedule to run every Monday at 9:00 AM UTC (adjust as needed)
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '0 2 * * 5'
 
 jobs:
   send-pdf-report:
