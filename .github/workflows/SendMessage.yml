@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   # Optional: Runs every day at 10:00 AM UTC
   schedule:
-    - cron: '0 10 * * *' 
+    # - cron: '0 10 * * *' 
 
 jobs:
   send_notification:
