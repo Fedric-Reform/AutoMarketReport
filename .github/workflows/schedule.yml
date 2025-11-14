@@ -4,7 +4,7 @@ on:
   # Allows manual execution from the 'Actions' tab on GitHub
   workflow_dispatch:
   schedule:
-    # - cron: '0 2 * * 5'
+    - cron: '0 9 * * 5'
 
 jobs:
   send-pdf-report:
